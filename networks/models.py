@@ -42,3 +42,21 @@ class Partner(models.Model):
             supplier = supplier.supplier
         return level
 
+
+class Product(models.Model):
+    """Продукт, продаваемый участником сети."""
+
+    name = models.CharField(max_length=255, help_text="Название продукта")
+    model = models.CharField(max_length=100, help_text="Модель устройства")
+    release_date = models.DateField(help_text="Дата выхода продукта на рынок")
+
+    partner = models.ForeignKey(
+        "Partner",
+        on_delete=models.CASCADE,
+        related_name="products",
+        help_text="Партнёр, у которого продаётся продукт"
+    )
+
+    def __str__(self):
+        """Название и модель продукта."""
+        return f"{self.name} ({self.model})"
