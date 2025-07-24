@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class Partner(models.Model):
@@ -41,6 +42,23 @@ class Partner(models.Model):
             level += 1
             supplier = supplier.supplier
         return level
+
+    def clean(self):
+        if self.supplier_id == self.id:
+            raise ValidationError("Партнёр не может быть своим собственным поставщиком.")
+
+        seen = {self.id}
+        supplier = self.supplier
+        level = 0
+
+        while supplier:
+            if supplier.id in seen:
+                raise ValidationError("Обнаружен цикл в цепочке поставщиков.")
+            seen.add(supplier.id)
+            level += 1
+            if level > 2:
+                raise ValidationError("Иерархия не должна быть глубже 3 уровней.")
+            supplier = supplier.supplier
 
 
 class Product(models.Model):

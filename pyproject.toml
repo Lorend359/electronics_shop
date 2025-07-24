@@ -12,6 +12,11 @@ python-decouple = "^3.8"
 django = "^5.2"
 djangorestframework = "^3.16"
 django-filter = "^25.1"
+drf-spectacular = {extras = ["swagger-ui"], version = "^0.28.0"}
+requests = "^2.32.4"
+pyyaml = "^6.0.2"
+uritemplate = "^4.2.0"
+djangorestframework-simplejwt = "^5.5.1"
 
 
 [tool.poetry.group.lint.dependencies]

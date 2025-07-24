@@ -5,7 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Partner
 from .serializers import PartnerSerializer
-from .permissions import IsActiveUser
+from .permissions import IsActiveStaff
 
 
 class PartnerViewSet(viewsets.ModelViewSet):
@@ -13,7 +13,7 @@ class PartnerViewSet(viewsets.ModelViewSet):
 
     queryset = Partner.objects.select_related("supplier").prefetch_related("products").all()
     serializer_class = PartnerSerializer
-    permission_classes = [IsActiveUser]
+    permission_classes = [IsActiveStaff]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["country"]
 
