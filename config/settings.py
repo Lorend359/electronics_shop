@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "networks",
-    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -136,18 +135,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "networks.permissions.IsActiveStaff",  # твой кастомный класс
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
+
 }
 
-# settings.py
+
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Electronics Network API",

@@ -2,24 +2,28 @@
 
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Case, When, Value, IntegerField
 
 from .models import Partner
 from .serializers import PartnerSerializer
-from .permissions import IsActiveStaff
-
 
 class PartnerViewSet(viewsets.ModelViewSet):
     """CRUD-доступ к партнёрам сети."""
 
-    queryset = Partner.objects.select_related("supplier").prefetch_related("products").all()
+    level_case = Case(
+        When(supplier__isnull=True, then=Value(0)),
+        When(supplier__supplier__isnull=True, then=Value(1)),
+        default=Value(2),
+        output_field=IntegerField(),
+    )
+
+    queryset = (
+        Partner.objects
+        .select_related("supplier", "supplier__supplier")
+        .prefetch_related("products")
+        .annotate(db_level=level_case)
+    )
+
     serializer_class = PartnerSerializer
-    permission_classes = [IsActiveStaff]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["country"]
-
-    def perform_update(self, serializer):
-        """Страховка: даже если сериализатор не убрал долг, не сохраняем его."""
-
-        data = dict(serializer.validated_data)
-        data.pop("debt_to_supplier", None)
-        serializer.save(**data)

@@ -1,4 +1,7 @@
+from decimal import Decimal
+from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 
@@ -6,7 +9,7 @@ class Partner(models.Model):
     """Элемент торговой сети: завод, розничная сеть или ИП."""
 
     name = models.CharField(max_length=255, help_text="Название партнёра")
-    email = models.EmailField(help_text="Email для связи")
+    email = models.EmailField(db_index=True, help_text="Email для связи")
     country = models.CharField(max_length=100, help_text="Страна, где расположен партнёр")
     city = models.CharField(max_length=100, help_text="Город, где расположен партнёр")
     street = models.CharField(max_length=100, help_text="Улица партнёра")
@@ -24,10 +27,20 @@ class Partner(models.Model):
     debt_to_supplier = models.DecimalField(
         max_digits=10,
         decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0"))],
         help_text="Сумма задолженности перед поставщиком"
     )
 
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и время создания записи")
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(debt_to_supplier__gte=0), name="debt_non_negative"),
+        ]
+        indexes = [
+            models.Index(fields=["city", "name"]),
+        ]
 
     def __str__(self):
         """Возвращает название партнёра."""
@@ -44,21 +57,24 @@ class Partner(models.Model):
         return level
 
     def clean(self):
-        if self.supplier_id == self.id:
+        if self.pk and self.supplier_id == self.pk:
             raise ValidationError("Партнёр не может быть своим собственным поставщиком.")
 
-        seen = {self.id}
+        seen = set()
         supplier = self.supplier
         level = 0
-
         while supplier:
-            if supplier.id in seen:
+            if supplier.pk in seen:
                 raise ValidationError("Обнаружен цикл в цепочке поставщиков.")
-            seen.add(supplier.id)
+            seen.add(supplier.pk)
             level += 1
             if level > 2:
                 raise ValidationError("Иерархия не должна быть глубже 3 уровней.")
             supplier = supplier.supplier
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
 
 class Product(models.Model):
