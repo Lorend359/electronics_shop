@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: electronics_db
+          POSTGRES_USER: electronics_user
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U electronics_user -d electronics_db"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=5
+
+    env:
+      # Эти переменные будут видны Django
+      POSTGRES_DB: electronics_db
+      POSTGRES_USER: electronics_user
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      SECRET_KEY: ci-secret
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Cache Poetry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install deps
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --only main --no-interaction --no-ansi
+          # Если есть dev-зависимости (pytest/coverage), добавь: --with dev
+
+      - name: Run tests with coverage
+        run: |
+          coverage run manage.py test networks
+          coverage report -m
+
+      - name: Upload coverage html
+        if: always()
+        run: coverage html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: htmlcov
+          path: htmlcov
