@@ -9,7 +9,6 @@ on:
       - "**"
   workflow_dispatch:
 
-
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -40,18 +39,18 @@ jobs:
       ALLOWED_HOSTS: localhost
 
     steps:
-      - name: Checkout
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
+      - name: 📦 Install Poetry
         run: pip install poetry
 
-      - name: Cache Poetry
+      - name: 🗃️ Cache Poetry & pip
         uses: actions/cache@v4
         with:
           path: |
@@ -61,22 +60,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-
 
-      - name: Install deps
+      - name: 🔧 Install dependencies
         run: |
           poetry config virtualenvs.create false
-          poetry install --only main --no-interaction --no-ansi
-          # Если есть dev-зависимости (pytest/coverage), добавь: --with dev
+          poetry install --with dev --no-interaction --no-ansi
 
-      - name: Run tests with coverage
+      - name: ✅ Run tests with coverage
         run: |
-          coverage run manage.py test networks
-          coverage report -m
+          poetry run coverage run manage.py test networks
+          poetry run coverage report -m
 
-      - name: Upload coverage html
-        if: always()
-        run: coverage html
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: 🧾 Generate coverage html
+        if: success() || failure()
+        run: poetry run coverage html
+
+      - name: ⬆️ Upload coverage artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
         with:
           name: htmlcov
           path: htmlcov
