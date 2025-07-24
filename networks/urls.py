@@ -1,6 +1,7 @@
 """URL-маршруты приложения торговой сети."""
 
 from rest_framework.routers import DefaultRouter
+
 from .views import PartnerViewSet
 
 router = DefaultRouter()

@@ -1,8 +1,9 @@
 from decimal import Decimal
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.core.exceptions import ValidationError
 
 
 class Partner(models.Model):
@@ -21,7 +22,7 @@ class Partner(models.Model):
         null=True,
         blank=True,
         related_name="clients",
-        help_text="Поставщик — другой элемент сети, от которого получаются товары"
+        help_text="Поставщик — другой элемент сети, от которого получаются товары",
     )
 
     debt_to_supplier = models.DecimalField(
@@ -29,7 +30,7 @@ class Partner(models.Model):
         decimal_places=2,
         default=Decimal("0.00"),
         validators=[MinValueValidator(Decimal("0"))],
-        help_text="Сумма задолженности перед поставщиком"
+        help_text="Сумма задолженности перед поставщиком",
     )
 
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и время создания записи")
@@ -86,10 +87,7 @@ class Product(models.Model):
     release_date = models.DateField(help_text="Дата выхода продукта на рынок")
 
     partner = models.ForeignKey(
-        "Partner",
-        on_delete=models.CASCADE,
-        related_name="products",
-        help_text="Партнёр, у которого продаётся продукт"
+        "Partner", on_delete=models.CASCADE, related_name="products", help_text="Партнёр, у которого продаётся продукт"
     )
 
     def __str__(self):

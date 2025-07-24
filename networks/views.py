@@ -1,11 +1,12 @@
 """DRF-представления для моделей торговой сети."""
 
-from rest_framework import viewsets
+from django.db.models import Case, IntegerField, Value, When
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Case, When, Value, IntegerField
+from rest_framework import viewsets
 
 from .models import Partner
 from .serializers import PartnerSerializer
+
 
 class PartnerViewSet(viewsets.ModelViewSet):
     """CRUD-доступ к партнёрам сети."""
@@ -18,8 +19,7 @@ class PartnerViewSet(viewsets.ModelViewSet):
     )
 
     queryset = (
-        Partner.objects
-        .select_related("supplier", "supplier__supplier")
+        Partner.objects.select_related("supplier", "supplier__supplier")
         .prefetch_related("products")
         .annotate(db_level=level_case)
     )

@@ -1,14 +1,15 @@
 from decimal import Decimal
-from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-from django.test import TestCase, RequestFactory
-from django.urls import reverse
-from rest_framework.test import APIClient
-from rest_framework import status
 
-from .models import Partner
-from .admin import clear_debt_to_supplier, PartnerAdmin
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.test import RequestFactory, TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from .admin import PartnerAdmin, clear_debt_to_supplier
+from .models import Partner
 
 User = get_user_model()
 
@@ -215,9 +216,7 @@ class AdminActionTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.admin_site = admin.site
-        self.staff = User.objects.create_superuser(
-            username="admin", email="admin@example.com", password="pass123"
-        )
+        self.staff = User.objects.create_superuser(username="admin", email="admin@example.com", password="pass123")
         self.partner1 = Partner.objects.create(
             name="P1",
             email="p1@example.com",
@@ -243,6 +242,7 @@ class AdminActionTests(TestCase):
         request.user = self.staff
 
         from django.contrib.messages.storage.fallback import FallbackStorage
+
         setattr(request, "session", {})
         messages = FallbackStorage(request)
         setattr(request, "_messages", messages)
@@ -254,4 +254,3 @@ class AdminActionTests(TestCase):
         self.partner2.refresh_from_db()
         self.assertEqual(self.partner1.debt_to_supplier, Decimal("0.00"))
         self.assertEqual(self.partner2.debt_to_supplier, Decimal("0.00"))
-

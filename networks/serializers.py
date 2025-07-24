@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework import serializers
+
 from .models import Partner, Product
 
 
@@ -17,19 +18,28 @@ class PartnerSerializer(serializers.ModelSerializer):
     Партнёр сети (завод / розница / ИП).
     Реализует вложенный вывод продуктов, уровень и ограничения иерархии.
     """
+
     level = serializers.IntegerField(source="db_level", read_only=True)
     products = ProductSerializer(many=True, read_only=True, help_text="Продукты партнёра.")
 
     class Meta:
         model = Partner
         fields = (
-            "id", "name", "email", "country", "city", "street", "house_number",
-            "supplier", "debt_to_supplier", "created_at", "level", "products"
+            "id",
+            "name",
+            "email",
+            "country",
+            "city",
+            "street",
+            "house_number",
+            "supplier",
+            "debt_to_supplier",
+            "created_at",
+            "level",
+            "products",
         )
         read_only_fields = ("id", "created_at", "debt_to_supplier")
-        extra_kwargs = {
-            "supplier": {"required": False, "allow_null": True}
-        }
+        extra_kwargs = {"supplier": {"required": False, "allow_null": True}}
 
     def validate(self, attrs):
         """
