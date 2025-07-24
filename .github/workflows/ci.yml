@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - "**"
   pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+
 
 jobs:
   tests:
@@ -25,7 +30,6 @@ jobs:
           --health-retries=5
 
     env:
-      # Эти переменные будут видны Django
       POSTGRES_DB: electronics_db
       POSTGRES_USER: electronics_user
       POSTGRES_PASSWORD: postgres
