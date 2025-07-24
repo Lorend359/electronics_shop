@@ -32,25 +32,25 @@ jobs:
       POSTGRES_DB: electronics_db
       POSTGRES_USER: electronics_user
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: localhost
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       SECRET_KEY: ci-secret
       DEBUG: "False"
       ALLOWED_HOSTS: localhost
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: 📦 Install Poetry
+      - name: Install Poetry
         run: pip install poetry
 
-      - name: 🗃️ Cache Poetry & pip
+      - name: Cache Poetry & pip
         uses: actions/cache@v4
         with:
           path: |
@@ -60,22 +60,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-
 
-      - name: 🔧 Install dependencies
+      - name: Install dependencies
         run: |
           poetry config virtualenvs.create false
           poetry install --with dev --no-interaction --no-ansi
 
-      - name: ✅ Run tests with coverage
+      - name: Wait for Postgres
         run: |
-          poetry run coverage run manage.py test networks
+          for i in {1..20}; do
+            pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB && exit 0
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+          echo "Postgres is not ready" && exit 1
+
+      - name: Run tests with coverage
+        run: |
+          poetry run coverage run manage.py test networks -v 2
           poetry run coverage report -m
 
-      - name: 🧾 Generate coverage html
-        if: success() || failure()
-        run: poetry run coverage html
+      - name: Generate coverage html
+        if: always()
+        run: |
+          if [ -f .coverage ]; then poetry run coverage html; else echo "No .coverage file"; fi
 
-      - name: ⬆️ Upload coverage artifact
-        if: success() || failure()
+      - name: Upload coverage artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: htmlcov
