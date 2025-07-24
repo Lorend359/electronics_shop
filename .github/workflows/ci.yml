@@ -2,11 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - "**"
+    branches: ["**"]
   pull_request:
-    branches:
-      - "**"
+    branches: ["**"]
   workflow_dispatch:
 
 jobs:
@@ -32,7 +30,7 @@ jobs:
       POSTGRES_DB: electronics_db
       POSTGRES_USER: electronics_user
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres         # <-- исправлено!
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       SECRET_KEY: ci-secret
       DEBUG: "False"
@@ -65,14 +63,7 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --with dev --no-interaction --no-ansi --no-root
 
-      - name: Wait for Postgres
-        run: |
-          for i in {1..20}; do
-            pg_isready -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DB && exit 0
-            echo "Waiting for Postgres..."
-            sleep 2
-          done
-          echo "Postgres is not ready" && exit 1
+      # Шаг ожидания удалили
 
       - name: Run tests with coverage
         run: |
