@@ -30,7 +30,7 @@ jobs:
       POSTGRES_DB: electronics_db
       POSTGRES_USER: electronics_user
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: 127.0.0.1          # <— ключевое изменение
       POSTGRES_PORT: 5432
       SECRET_KEY: ci-secret
       DEBUG: "False"
@@ -62,8 +62,6 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry install --with dev --no-interaction --no-ansi --no-root
-
-      # Шаг ожидания удалили
 
       - name: Run tests with coverage
         run: |
