@@ -1,0 +1,19 @@
+[run]
+branch = True
+source =
+    networks
+    config
+omit =
+    */migrations/*
+    manage.py
+    */tests/*
+    */venv/*
+    */.venv/*
+    config/asgi.py
+    config/wsgi.py
+
+[report]
+show_missing = True
+skip_covered = True
+precision = 2
+fail_under = 85

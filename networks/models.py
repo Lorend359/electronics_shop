@@ -35,6 +35,7 @@ class Partner(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и время создания записи")
 
     class Meta:
+        ordering = ["id"]
         constraints = [
             models.CheckConstraint(check=Q(debt_to_supplier__gte=0), name="debt_non_negative"),
         ]
